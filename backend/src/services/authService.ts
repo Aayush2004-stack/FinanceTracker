@@ -1,5 +1,6 @@
 import { user } from "../models/user";
 import { pool } from "../configs/db";
+import {hashPassword} from "../utils/hashPw"
 
 export async function registerUser(input: {
   name: string;
@@ -9,10 +10,12 @@ export async function registerUser(input: {
   const { name, email, password } = input;
   //TODO: validate input fields
 
+  const hashedPassword= hashPassword(password);
+
   const q = `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) returning 
     *;`;
 
-  const result = await pool.query<user>(q, [name.trim(), email, password]);
+  const result = await pool.query<user>(q, [name.trim(), email, hashPassword]);
 
   const user = result.rows[0];
 
