@@ -1,12 +1,14 @@
 import { testDbConnection } from "./src/configs/db";
 import dotenv from "dotenv"
 import express from "express";
+import register from "./src/routes/authRoutes"
 
 dotenv.config();
 
-const app = express()
+const app = express();
+app.use(express.json());//parse the json body
 
-
+app.use("/api/auth",register);
 const PORT = process.env.PORT || 3001;
 async function startServer(){
     await testDbConnection();
