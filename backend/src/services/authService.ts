@@ -4,6 +4,7 @@ import {hashPassword} from "../utils/hashPw"
 import jwt, {SignOptions} from "jsonwebtoken"
 import dotenv from "dotenv";
 import {HttpError,  isPgUniqueVoilation} from "../utils/errors";
+import {isValidEmail} from "../utils/validations";
 
 dotenv.config();
 
@@ -30,6 +31,9 @@ export async function registerUser(input: {
 
     const { name, email, password } = input;
     //TODO: validate input fields
+    if(!isValidEmail(email)){
+      throw new HttpError(400,"Not a valid email format")
+    }
     
     const hashedPassword= hashPassword(password);
     try{
