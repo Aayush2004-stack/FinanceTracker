@@ -5,13 +5,13 @@ import {HttpError} from "../utils/errors"
 export async function  register(req:Request, res:Response){
     const {name, email, password}= req.body;
 
-    if(!name){
+    if(!name.trim()){
         return res.status(400).json({message:"Name is required"})
     }
-    if(!email){
+    if(!email.trim()){
         return res.status(400).json({message:"Email is required"})
     }
-    if(!password){
+    if(!password.trim()){
         return res.status(400).json({message:"Password is required"})
     }
     try{
