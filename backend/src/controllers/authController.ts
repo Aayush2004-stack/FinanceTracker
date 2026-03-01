@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from "express"
-import {registerUser}  from "../services/authService" 
+import {registerUser, validateUser}  from "../services/authService" 
 
 
 export async function  register(req:Request, res:Response, next:NextFunction){
@@ -24,6 +24,20 @@ export async function  register(req:Request, res:Response, next:NextFunction){
         next(err);
     }
 
+
+
+}
+export async function validateUserEmail(req: Request, res: Response, next: NextFunction){
+    const userId = req.user?.userId;
+    const {otp} = req.body;
+    try{
+
+        await validateUser(userId!, otp);
+        return res.status(200,).json({message:"OTP validated successfully"});
+    }
+    catch(err){
+        next(err);
+    }
 
 
 }

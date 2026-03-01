@@ -70,3 +70,26 @@ export async function registerUser(input: {
 
   }
 }
+
+export async function getUserDetails(userId: string){
+  const q=`Select name, email, otp, otp_expiry_time from users where id = $1`;
+
+  const result= await pool.query<user>(q,[userId])
+  const user= result.rows[0];
+  return user;
+}
+
+export async function validateUser(userId:string ,otp:string){
+  const user= await getUserDetails(userId)
+  const hashedOtp= hashOTP(otp);
+  if(new Date(Date.now())>user.otp_expiry_time){
+    throw new HttpError(400,"OTP expired");
+  }
+  if (!(hashedOtp===user.otp)){
+    throw new HttpError(400, "Invalid OTP")
+  }
+  const q=`UPDATE users SET is_verified = true, otp = NULL, otp_expiry_time= NULL where id =$1`;
+  await pool.query<user>(q,[userId])
+
+  
+}
