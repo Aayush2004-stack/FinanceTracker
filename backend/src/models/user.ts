@@ -6,6 +6,9 @@ export interface user{
     password: string;
     created_at:string;
     updated_at:string;
-    isVerified:boolean;
+    is_verified:boolean;
+    otp:string;
+    otp_expiry_time: Date;
+
 
 }
