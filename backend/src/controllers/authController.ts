@@ -1,17 +1,17 @@
-import {Request, Response} from "express"
+import {Request, Response, NextFunction} from "express"
 import {registerUser}  from "../services/authService" 
-import {HttpError} from "../utils/errors"
 
-export async function  register(req:Request, res:Response){
+
+export async function  register(req:Request, res:Response, next:NextFunction){
     const {name, email, password}= req.body;
 
-    if(!name.trim()){
+    if(!name?.trim()){
         return res.status(400).json({message:"Name is required"})
     }
-    if(!email.trim()){
+    if(!email?.trim()){
         return res.status(400).json({message:"Email is required"})
     }
-    if(!password.trim()){
+    if(!password?.trim()){
         return res.status(400).json({message:"Password is required"})
     }
     try{
@@ -21,12 +21,7 @@ export async function  register(req:Request, res:Response){
     
     }
     catch(err){
-        if (err instanceof HttpError){
-            return res.status(err.status).json({message:err.message})
-        }
-        console.log(err);
-        return res.status(500).json({message:"Server error:"})
-
+        next(err);
     }
 
 
