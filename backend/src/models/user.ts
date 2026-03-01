@@ -6,4 +6,6 @@ export interface user{
     password: string;
     created_at:string;
     updated_at:string;
+    isVerified:boolean;
+
 }

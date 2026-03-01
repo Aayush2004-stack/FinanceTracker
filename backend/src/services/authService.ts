@@ -49,6 +49,7 @@ export async function registerUser(input: {
       email: user.email,
       created_at: user.created_at,
       updated_at: user.updated_at,
+      isVerified: user.isVerified,
     };
   }
   catch(err){
