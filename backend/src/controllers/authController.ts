@@ -1,20 +1,28 @@
-import {Request, Response} from "express"
+import {Request, Response, NextFunction} from "express"
 import {registerUser}  from "../services/authService" 
 
-export async function  register(req:Request, res:Response){
+
+export async function  register(req:Request, res:Response, next:NextFunction){
     const {name, email, password}= req.body;
 
-    if(!name){
+    if(!name?.trim()){
         return res.status(400).json({message:"Name is required"})
     }
-    if(!email){
+    if(!email?.trim()){
         return res.status(400).json({message:"Email is required"})
     }
-    if(!password){
+    if(!password?.trim()){
         return res.status(400).json({message:"Password is required"})
     }
-    const userData= await registerUser({name, email, password})
-    return res.status(201).json({message:"User registered successfully",userData})
+    try{
+
+        const userData= await registerUser({name, email, password})
+        return res.status(201).json({message:"User registered successfully",userData})
+    
+    }
+    catch(err){
+        next(err);
+    }
 
 
 
