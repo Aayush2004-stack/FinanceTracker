@@ -17,7 +17,7 @@ export async function  register(req:Request, res:Response, next:NextFunction){
     try{
 
         const userData= await registerUser({name, email, password})
-        return res.status(201).json({message:"User registered successfully",userData})
+        return res.status(201).json({message:"OTP sent to the email, verify the otp",userData})
     
     }
     catch(err){

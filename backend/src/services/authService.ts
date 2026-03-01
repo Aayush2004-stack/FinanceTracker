@@ -5,6 +5,7 @@ import jwt, {SignOptions} from "jsonwebtoken"
 import dotenv from "dotenv";
 import {HttpError,  isPgUniqueVoilation} from "../utils/errors";
 import {isValidEmail} from "../utils/validations";
+import {generateOTP, hashOTP, otpExpiryTime, } from "../utils/otp"
 
 dotenv.config();
 
@@ -35,13 +36,17 @@ export async function registerUser(input: {
       throw new HttpError(400,"Not a valid email format")
     }
     
-    const hashedPassword= hashPassword(password);
+    const hashedPassword= await hashPassword(password);
+    const otp = generateOTP();
+    const hashedOTP= hashOTP(otp);
+    const otpExpireAt= otpExpiryTime();
+
     try{
     
-    const q = `INSERT INTO users (name, email, password) VALUES ($1, $2, $3) returning 
+    const q = `INSERT INTO users (name, email, password, otp, otp_expiry_time ) VALUES ($1, $2, $3, $4, $5) returning 
     *;`;
     
-    const result = await pool.query<user>(q, [name.trim(), email, hashedPassword]);
+    const result = await pool.query<user>(q, [name.trim(), email, hashedPassword, hashedOTP, otpExpireAt]);
     
     const user = result.rows[0];
     const token = signToken(user.id)
@@ -53,7 +58,7 @@ export async function registerUser(input: {
       email: user.email,
       created_at: user.created_at,
       updated_at: user.updated_at,
-      isVerified: user.isVerified,
+      is_verified: user.is_verified,
     };
   }
   catch(err){
