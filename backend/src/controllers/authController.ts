@@ -3,7 +3,7 @@ import {registerUser, validateUser}  from "../services/authService"
 
 
 export async function  register(req:Request, res:Response, next:NextFunction){
-    const {name, email, password}= req.body;
+    const {name, email, password, confirmPassword}= req.body;
 
     if(!name?.trim()){
         return res.status(400).json({message:"Name is required"})
@@ -14,9 +14,12 @@ export async function  register(req:Request, res:Response, next:NextFunction){
     if(!password?.trim()){
         return res.status(400).json({message:"Password is required"})
     }
+    if(!confirmPassword?.trim()){
+        return res.status(400).json({message:"Confirm Password is required"})
+    }
     try{
 
-        const userData= await registerUser({name, email, password})
+        const userData= await registerUser({name, email, password, confirmPassword})
         return res.status(201).json({message:"OTP sent to the email, verify the otp",userData})
     
     }

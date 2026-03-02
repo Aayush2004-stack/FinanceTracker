@@ -1,6 +1,6 @@
 import { user } from "../models/user";
 import { pool } from "../configs/db";
-import { hashPassword } from "../utils/hashPw";
+import { hashPassword, validatePassword } from "../utils/passwords";
 import jwt, { SignOptions } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { HttpError, isPgUniqueVoilation } from "../utils/errors";
@@ -22,11 +22,18 @@ export async function registerUser(input: {
   name: string;
   email: string;
   password: string;
+  confirmPassword:string;
 }) {
-  const { name, email, password } = input;
+  const { name, email, password, confirmPassword} = input;
 
   if (!isValidEmail(email)) {
     throw new HttpError(400, "Not a valid email format");
+  }
+  if (!validatePassword(password)){
+    throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.")
+  }
+  if(password!==confirmPassword){
+    throw new HttpError(400,"Password do not match")
   }
 
   const hashedPassword = await hashPassword(password);
@@ -68,22 +75,43 @@ export async function registerUser(input: {
 }
 
 export async function getUserDetails(userId: string) {
-  const q = `Select name, email, otp, otp_expires_at from users where id = $1`;
+  try{
 
-  const result = await pool.query<user>(q, [userId]);
-  const user = result.rows[0];
-  return user;
+    const q = `Select name, email, otp, otp_expires_at from users where id = $1`;
+
+    const result = await pool.query<user>(q, [userId]);
+
+    if(result.rows.length===0){
+      throw new HttpError(404, "User not found")
+      
+    }
+    const user = result.rows[0];
+
+    return user;
+  }
+  catch(err){
+    throw err;
+  }
 }
 
 export async function validateUser(userId: string, otp: string) {
-  const user = await getUserDetails(userId);
-  const hashedOtp = hashOTP(otp);
-  if (new Date(Date.now()) > user.otp_expires_at) {
-    throw new HttpError(400, "OTP expired");
+  try{
+
+    const user = await getUserDetails(userId);
+
+    if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
+      throw new HttpError(400,"OTP expired. Resend OTP")
+
+    }
+    const hashedOtp = hashOTP(otp);
+    
+    if (!(hashedOtp === user.otp)) {
+      throw new HttpError(400, "Invalid OTP");
+    }
+    const q = `UPDATE users SET is_verified = true, otp = NULL, otp_expires_at = NULL where id =$1`;
+    await pool.query<user>(q, [userId]);
   }
-  if (!(hashedOtp === user.otp)) {
-    throw new HttpError(400, "Invalid OTP");
+  catch(err){
+    throw err;
   }
-  const q = `UPDATE users SET is_verified = true, otp = NULL, otp_expires_at = NULL where id =$1`;
-  await pool.query<user>(q, [userId]);
 }
