@@ -17,6 +17,6 @@ export function hashOTP(otp:string):string{
     return hashedOtp;
 }
 
-export function otpExpiryTime(minutes=10):Date{
+export function setOtpExpiryTime(minutes=10):Date{
     return new Date(Date.now()+minutes*60*1000);//date.now gives time in ms (changing minute to ms )
 }

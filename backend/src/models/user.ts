@@ -8,7 +8,7 @@ export interface user{
     updated_at:string;
     is_verified:boolean;
     otp:string;
-    otp_expiry_time: Date;
+    otp_expires_at: Date;
 
 
 }
