@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 import {HttpError,  isPgUniqueVoilation} from "../utils/errors";
 import {isValidEmail} from "../utils/validations";
 import {generateOTP, hashOTP, otpExpiryTime, } from "../utils/otp"
+import {sendOtp} from "../utils/mailer"
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ export async function registerUser(input: {
 
 
     const { name, email, password } = input;
-    //TODO: validate input fields
+
     if(!isValidEmail(email)){
       throw new HttpError(400,"Not a valid email format")
     }
@@ -47,7 +48,8 @@ export async function registerUser(input: {
     *;`;
     
     const result = await pool.query<user>(q, [name.trim(), email, hashedPassword, hashedOTP, otpExpireAt]);
-    
+
+    await sendOtp(email,otp,10);
     const user = result.rows[0];
     const token = signToken(user.id)
     
