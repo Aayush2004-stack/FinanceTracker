@@ -4,13 +4,13 @@ export async function hashPassword(password: string){
     return bcrypt.hash(password,10);
 }
 
-export  function validatePassword(password:string):boolean{
-    if(password.length<8){
-        return false;
+// export  function validatePassword(password:string):boolean{
+//     if(password.length<8){
+//         return false;
 
-    }
-    const hasUpperCase =/[A-Z]/.test(password);
-    const hasLowerCase =/[a-z]/.test(password);
-    const hasNumber=/[0-9]/.test(password);
-    return (hasLowerCase && hasUpperCase && hasNumber);
-}
+//     }
+//     const hasUpperCase =/[A-Z]/.test(password);
+//     const hasLowerCase =/[a-z]/.test(password);
+//     const hasNumber=/[0-9]/.test(password);
+//     return (hasLowerCase && hasUpperCase && hasNumber);
+// }

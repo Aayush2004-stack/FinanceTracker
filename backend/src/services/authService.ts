@@ -1,10 +1,10 @@
 import { user } from "../models/user";
 import { pool } from "../configs/db";
-import { hashPassword, validatePassword } from "../utils/passwords";
+import { hashPassword } from "../utils/passwords";
 import jwt, { SignOptions } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { HttpError, isPgUniqueVoilation } from "../utils/errors";
-import { isValidEmail } from "../utils/validations";
+import { isValidEmail, isValidPassword } from "../utils/validations";
 import { generateOTP, hashOTP, setOtpExpiryTime } from "../utils/otp";
 import { sendOtp } from "../utils/mailer";
 
@@ -29,7 +29,7 @@ export async function registerUser(input: {
   if (!isValidEmail(email)) {
     throw new HttpError(400, "Not a valid email format");
   }
-  if (!validatePassword(password)){
+  if (!isValidPassword(password)){
     throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.")
   }
   if(password!==confirmPassword){
