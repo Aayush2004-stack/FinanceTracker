@@ -1,12 +1,13 @@
 import { user } from "../models/user";
 import { pool } from "../configs/db";
-import { hashPassword } from "../utils/passwords";
+import { hashPassword, verifyPassword } from "../utils/passwords";
 import jwt, { SignOptions } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { HttpError, isPgUniqueVoilation } from "../utils/errors";
 import { isValidEmail, isValidPassword } from "../utils/validations";
 import { generateOTP, hashOTP, setOtpExpiryTime } from "../utils/otp";
 import { sendOtp } from "../utils/mailer";
+
 
 dotenv.config();
 
@@ -111,6 +112,49 @@ export async function validateUser(userId: string, otp: string) {
     const q = `UPDATE users SET is_verified = true, otp = NULL, otp_expires_at = NULL where id =$1`;
     await pool.query<user>(q, [userId]);
   }
+  catch(err){
+    throw err;
+  }
+}
+
+export async function userLogin(email: string, password: string){
+  if(!email.trim() || !password.trim()){
+    throw new HttpError(400,"All fields required");
+  }
+
+  try{
+    const q =`Select id, name, email, password, is_verified FROM users where email = $1 AND password = $2`;
+
+    const result = await pool.query<user>(q,[email, password]);
+
+    if(result.rows.length===0){
+      throw new HttpError(404, "User not found");
+
+    }
+    const user = result.rows[0];
+    if(!verifyPassword(password, user.password)){
+      throw new HttpError(401, "Invalid email or password");
+    }
+    
+
+    if(!user.is_verified){
+      throw new HttpError(403,"Email not verified")
+    }
+
+    const token = signToken(user.id);
+
+    return {
+      user_token: token,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      created_at: user.created_at,
+      updated_at: user.updated_at,
+      is_verified: user.is_verified,
+    };
+
+  }
+  
   catch(err){
     throw err;
   }
