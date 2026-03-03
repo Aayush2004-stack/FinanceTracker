@@ -29,3 +29,8 @@ export async function createCategory(input: {
   }
 }
 
+export async function getAllCategories() {
+  const q = `SELECT * FROM categories ORDER BY name ASC;`;
+  const result = await pool.query<category>(q);
+  return result.rows;
+}
