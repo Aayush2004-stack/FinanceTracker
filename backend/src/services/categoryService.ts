@@ -47,3 +47,44 @@ export async function getCategoryById(id: string) {
 
   return result.rows[0];
 }
+
+export async function updateCategory(input: {
+    id?: string;
+    name?: string;
+    description?: string;
+}) {
+    const { name, description } = input;
+    if (!name?.trim() &&!description?.trim()) {
+        throw new HttpError(400, "One field is required cumpolsory to update!");
+    }
+
+    try{
+        const updates: string [] = [];
+        const values: any[] = [];
+        let paramIndex = 1;
+
+        if(name?.trim()){
+            updates.push(`name = $${paramIndex++}`);
+            values.push(name.trim());
+        }
+
+        if(description?.trim()){
+            updates.push(`description = $${paramIndex++}`);
+            values.push(description.trim());
+        }
+
+        const q = `ÙPDATE categories SET ${updates.join(", ")} WHERE id = $${paramIndex} RETURNING *;`;
+        const result = await pool.query<category>(q, values);
+
+        if(!result.rows[0]){
+            throw new HttpError(404, "Respective category not found!");
+        }
+        return result.rows[0];
+
+    } catch(err:any){
+        if(isPgUniqueVoilation(err)){
+            throw new HttpError(409, "Category name already exists!");
+        }
+        throw err;
+    }
+}
