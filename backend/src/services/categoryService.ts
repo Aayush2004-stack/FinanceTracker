@@ -88,3 +88,21 @@ export async function updateCategory(input: {
         throw err;
     }
 }
+
+
+export async function deleteCategory(id: string){
+    try{
+        const q = `DELETE FROM categories WHERE id = $1 RETURNING *;`;
+        const result = await pool.query<category>(q, [id]);
+
+        if(!result.rows[0]){
+            throw new HttpError(404, "Respective category not found!");
+        }
+        return{message: "Respective category deleted successfully!"};
+    }catch(err:any){
+        if(isPgUniqueVoilation(err)){
+            throw new HttpError(409, "Respective category cannot be deleted!");
+        }
+        throw err;
+    }
+}
