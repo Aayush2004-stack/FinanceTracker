@@ -29,8 +29,21 @@ export async function createCategory(input: {
   }
 }
 
+
 export async function getAllCategories() {
   const q = `SELECT * FROM categories ORDER BY name ASC;`;
   const result = await pool.query<category>(q);
   return result.rows;
+}
+
+
+export async function getCategoryById(id: string) {
+  const q = `SELECT *FROM categories WHERE id = $1;`;
+  const result = await pool.query<category>(q, [id]);
+
+  if (!result.rows[0]) {
+    throw new HttpError(404, "Respective category not found!");
+  }
+
+  return result.rows[0];
 }
