@@ -123,16 +123,16 @@ export async function userLogin(email: string, password: string){
   }
 
   try{
-    const q =`Select id, name, email, password, is_verified FROM users where email = $1 AND password = $2`;
+    const q =`Select id, name, email, password, is_verified FROM users where email = $1`;
 
-    const result = await pool.query<user>(q,[email, password]);
+    const result = await pool.query<user>(q,[email]);
 
     if(result.rows.length===0){
       throw new HttpError(404, "User not found");
 
     }
     const user = result.rows[0];
-    if(!verifyPassword(password, user.password)){
+    if(!await verifyPassword(password, user.password)){
       throw new HttpError(401, "Invalid email or password");
     }
     
