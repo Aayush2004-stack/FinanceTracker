@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from "express"
-import {registerUser, validateUser, userLogin}  from "../services/authService" 
+import {registerUser, validateEmail, userLogin}  from "../services/authService" 
 import { HttpError } from "../utils/errors";
 
 
@@ -48,11 +48,12 @@ export async function login(req: Request, res:Response, next:NextFunction){
 
 
 export async function validateUserEmail(req: Request, res: Response, next: NextFunction){
-    const userId = req.user?.userId;
-    const {otp} = req.body;
+  
+    const {email, otp} = req.body;
+
     try{
 
-        await validateUser(userId!, otp);
+        await validateEmail(email, otp);
         return res.status(200,).json({message:"OTP validated successfully"});
     }
     catch(err){
