@@ -1,4 +1,5 @@
 import IsEmail from "isemail";
+import { StringDecoder } from "node:string_decoder";
 
 
 export function isValidEmail(email:string):boolean{
@@ -14,4 +15,15 @@ export  function isValidPassword(password:string):boolean{
     const hasLowerCase =/[a-z]/.test(password);
     const hasNumber=/[0-9]/.test(password);
     return (hasLowerCase && hasUpperCase && hasNumber);
+}
+
+
+export function formatUserName(name:string):string{
+    const formatedName =name.trim().replace(/\s+/g," ").toUpperCase();//remove white spaces
+    return formatedName ;
+}
+
+export function formatEmail(email:string):string{
+    const formatedEmail = email.trim().toLowerCase();
+    return formatedEmail;
 }
