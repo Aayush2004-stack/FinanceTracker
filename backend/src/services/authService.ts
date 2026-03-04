@@ -56,10 +56,10 @@ export async function registerUser(input: {
 
     await sendOtp(email, otp, 10);
     const user = result.rows[0];
-    const token = signToken(user.id);
+    // const token = signToken(user.id);
 
     return {
-      user_token: token,
+      //user_token: token,
       id: user.id,
       name: user.name,
       email: user.email,
@@ -95,23 +95,52 @@ export async function getUserDetails(userId: string) {
   }
 }
 
-export async function validateUser(userId: string, otp: string) {
+export async function getUserDetailsFromEmail(email: string) {
   try{
 
-    const user = await getUserDetails(userId);
+    const q = `Select name, email, otp, otp_expires_at from users where email = $1`;
+
+    const result = await pool.query<user>(q, [email]);
+
+    if(result.rows.length===0){
+      throw new HttpError(404, "User not found")
+      
+    }
+    const user = result.rows[0];
+
+    return user;
+  }
+  catch(err){
+    throw err;
+  }
+}
+
+export async function validateEmail(email: string, otp: string) {
+  try{
+
+    const user = await getUserDetailsFromEmail(email);
 
     if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
       throw new HttpError(400,"OTP expired. Resend OTP")
 
+    }
+    if(user.is_verified){
+      throw new HttpError(409, "email is already verified")
     }
     const hashedOtp = hashOTP(otp);
     
     if (!(hashedOtp === user.otp)) {
       throw new HttpError(400, "Invalid OTP");
     }
-    const q = `UPDATE users SET is_verified = true, otp = NULL, otp_expires_at = NULL where id =$1`;
-    await pool.query<user>(q, [userId]);
-  }
+    const q = `UPDATE users SET is_verified = true, otp = NULL, otp_expires_at = NULL where email =$1`;
+    await pool.query<user>(q, [email]);
+    const token = signToken(user.id);
+    return {
+      user_token: token,
+      id: user.id,
+      name: user.name,
+      email: user.email,
+  }}
   catch(err){
     throw err;
   }
@@ -138,6 +167,7 @@ export async function userLogin(email: string, password: string){
     
 
     if(!user.is_verified){
+      
       throw new HttpError(403,"Email not verified")
     }
 
@@ -159,3 +189,4 @@ export async function userLogin(email: string, password: string){
     throw err;
   }
 }
+
