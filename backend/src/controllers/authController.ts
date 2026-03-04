@@ -34,7 +34,7 @@ export async function  register(req:Request, res:Response, next:NextFunction){
 
 export async function login(req: Request, res:Response, next:NextFunction){
     const {email, password} = req.body;
-    if(!email.trim() || password.trim()){
+    if(!email.trim() || !password.trim()){
         throw new HttpError(400,"All fields required")
     }
     try{
