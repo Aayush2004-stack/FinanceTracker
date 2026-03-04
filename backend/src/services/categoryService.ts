@@ -29,17 +29,15 @@ export async function createCategory(input: {
   }
 }
 
-
-export async function getAllCategories() {
-  const q = `SELECT * FROM categories ORDER BY name ASC;`;
-  const result = await pool.query<category>(q);
+export async function getAllCategories(user_id: string) {
+  const q = `SELECT * FROM categories WHERE user_id = $1 ORDER BY name ASC;`;
+  const result = await pool.query<category>(q, [user_id]);
   return result.rows;
 }
 
-
-export async function getCategoryById(id: string) {
-  const q = `SELECT *FROM categories WHERE id = $1;`;
-  const result = await pool.query<category>(q, [id]);
+export async function getCategoryById(id: string, user_id: string) {
+  const q = `SELECT *FROM categories WHERE id = $1 AND user_id = $2;`;
+  const result = await pool.query<category>(q, [id, user_id]);
 
   if (!result.rows[0]) {
     throw new HttpError(404, "Respective category not found!");
@@ -49,60 +47,68 @@ export async function getCategoryById(id: string) {
 }
 
 export async function updateCategory(input: {
-    id?: string;
-    name?: string;
-    description?: string;
+  id?: string;
+  user_id?: string;
+  name?: string;
+  description?: string;
 }) {
-    const { name, description } = input;
-    if (!name?.trim() &&!description?.trim()) {
-        throw new HttpError(400, "One field is required cumpolsory to update!");
+  const { id, user_id, name, description } = input;
+
+  if (!id || !user_id) {
+    throw new HttpError(400, "Category id and User id are required!");
+  }
+  if (!name?.trim() && !description?.trim()) {
+    throw new HttpError(400, "One field is required cumpolsory to update!");
+  }
+
+  try {
+    const updates: string[] = [];
+    const values: any[] = [];
+    let paramIndex = 1;
+
+    if (name?.trim()) {
+      updates.push(`name = $${paramIndex++}`);
+      values.push(name.trim());
     }
 
-    try{
-        const updates: string [] = [];
-        const values: any[] = [];
-        let paramIndex = 1;
-
-        if(name?.trim()){
-            updates.push(`name = $${paramIndex++}`);
-            values.push(name.trim());
-        }
-
-        if(description?.trim()){
-            updates.push(`description = $${paramIndex++}`);
-            values.push(description.trim());
-        }
-
-        const q = `ÙPDATE categories SET ${updates.join(", ")} WHERE id = $${paramIndex} RETURNING *;`;
-        const result = await pool.query<category>(q, values);
-
-        if(!result.rows[0]){
-            throw new HttpError(404, "Respective category not found!");
-        }
-        return result.rows[0];
-
-    } catch(err:any){
-        if(isPgUniqueVoilation(err)){
-            throw new HttpError(409, "Category name already exists!");
-        }
-        throw err;
+    if (description?.trim()) {
+      updates.push(`description = $${paramIndex++}`);
+      values.push(description.trim());
     }
+
+    values.push(id, user_id);
+
+    const q = `UPDATE categories SET ${updates.join(", ")} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING *;`;
+    const result = await pool.query<category>(q, values);
+
+    if (!result.rows[0]) {
+      throw new HttpError(404, "Respective category not found!");
+    }
+    return result.rows[0];
+  } catch (err: any) {
+    if (isPgUniqueVoilation(err)) {
+      throw new HttpError(409, "Category name already exists!");
+    }
+    throw err;
+  }
 }
 
-
-export async function deleteCategory(id: string){
-    try{
-        const q = `DELETE FROM categories WHERE id = $1 RETURNING *;`;
-        const result = await pool.query<category>(q, [id]);
-
-        if(!result.rows[0]){
-            throw new HttpError(404, "Respective category not found!");
-        }
-        return{message: "Respective category deleted successfully!"};
-    }catch(err:any){
-        if(isPgUniqueVoilation(err)){
-            throw new HttpError(409, "Respective category cannot be deleted!");
-        }
-        throw err;
+export async function deleteCategory(id: string, user_id: string) {
+  try {
+    if (!id || !user_id) {
+      throw new HttpError(400, "Category id and User id are required!");
     }
+    const q = `DELETE FROM categories WHERE id = $1 AND user_id = $2 RETURNING *;`;
+    const result = await pool.query<category>(q, [id, user_id]);
+
+    if (!result.rows[0]) {
+      throw new HttpError(404, "Respective category not found!");
+    }
+    return { message: "Respective category deleted successfully!" };
+  } catch (err: any) {
+    if (isPgUniqueVoilation(err)) {
+      throw new HttpError(409, "Respective category cannot be deleted!");
+    }
+    throw err;
+  }
 }
