@@ -14,7 +14,7 @@ export async function createCategory(input: {
   }
 
   try {
-    const q = `INSERT INTO categories (user_id,name, description) VALUES ($1, $2, $3) RETURNING *;`;
+    const q = `INSERT INTO category (user_id,name, description) VALUES ($1, $2, $3) RETURNING id, name, description, created_at, updated_at;`;
     const result = await pool.query<category>(q, [
       user_id,
       name.trim(),
@@ -30,13 +30,13 @@ export async function createCategory(input: {
 }
 
 export async function getAllCategories(user_id: string) {
-  const q = `SELECT * FROM categories WHERE user_id = $1 ORDER BY name ASC;`;
+  const q = `SELECT id, name, description, created_at, updated_at FROM category WHERE user_id = $1 ORDER BY name ASC;`;
   const result = await pool.query<category>(q, [user_id]);
   return result.rows;
 }
 
 export async function getCategoryById(id: string, user_id: string) {
-  const q = `SELECT *FROM categories WHERE id = $1 AND user_id = $2;`;
+  const q = `SELECT id, name, description, created_at, updated_at FROM category WHERE id = $1 AND user_id = $2;`;
   const result = await pool.query<category>(q, [id, user_id]);
 
   if (!result.rows[0]) {
@@ -78,7 +78,9 @@ export async function updateCategory(input: {
 
     values.push(id, user_id);
 
-    const q = `UPDATE categories SET ${updates.join(", ")} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING *;`;
+    updates.push(`updated_at = CURRENT_TIMESTAMP`);
+
+    const q = `UPDATE category SET ${updates.join(", ")} WHERE id = $${paramIndex++} AND user_id = $${paramIndex} RETURNING id, name, description, created_at, updated_at;`;
     const result = await pool.query<category>(q, values);
 
     if (!result.rows[0]) {
@@ -98,7 +100,7 @@ export async function deleteCategory(id: string, user_id: string) {
     if (!id || !user_id) {
       throw new HttpError(400, "Category id and User id are required!");
     }
-    const q = `DELETE FROM categories WHERE id = $1 AND user_id = $2 RETURNING *;`;
+    const q = `DELETE FROM category WHERE id = $1 AND user_id = $2 RETURNING *;`;
     const result = await pool.query<category>(q, [id, user_id]);
 
     if (!result.rows[0]) {
