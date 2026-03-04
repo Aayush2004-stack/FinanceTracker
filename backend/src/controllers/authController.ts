@@ -50,6 +50,9 @@ export async function login(req: Request, res:Response, next:NextFunction){
 export async function validateUserEmail(req: Request, res: Response, next: NextFunction){
   
     const {email, otp} = req.body;
+    if(!email.trim() || !otp.trim()){
+        throw new HttpError(400,"Email or otp is missing")
+    }
 
     try{
 

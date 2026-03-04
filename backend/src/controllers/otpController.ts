@@ -3,10 +3,10 @@ import {sendOtpForValidation} from "../services/otpService"
 import { HttpError } from "../utils/errors";
 
 export async function sendOtp(req: Request, res: Response, next: NextFunction){
-    const email = req.body;
+    const {email} = req.body;
     const cleanEmail= email.trim().toLowerCase()
     if(!cleanEmail){
-        return res.status(404).json({message:"Email not provided!!"})
+        throw new HttpError(400, "Email not provided")
     }
     try{
         await sendOtpForValidation(cleanEmail);
