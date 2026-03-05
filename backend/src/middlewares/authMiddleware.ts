@@ -1,8 +1,10 @@
 import {Request, Response, NextFunction} from "express";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
+import { HttpError } from "../utils/errors";
 
 dotenv.config();
+
 
 export interface JwtPayLoad{
     userId:string;
@@ -24,7 +26,7 @@ export function authMiddleware(req: Request, res:Response, next:NextFunction){
 
     }
     catch(err){
-        return res.status(401).json({message:"Invalid token"})
+        next(new HttpError(401, "Invalid token!"));
 
     }
 }
