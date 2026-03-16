@@ -230,11 +230,15 @@ export async function changePassword(oldPassword: string, newPassword: string, c
       throw new HttpError(400,"Password do not match")
       
     }
+    if(cleanNewPw===cleanOldPw){
+      throw new HttpError(422,"New password must be different from the old password.")
+    }
     
     if(! isValidPassword(cleanNewPw)){
       throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.")
       
     }
+
     
     const q=`Update users SET password =$1 where id = $2`
     await pool.query<user>(q,[newPassword, userId])
