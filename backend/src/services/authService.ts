@@ -221,7 +221,7 @@ export async function changePassword(oldPassword: string, newPassword: string, c
 
     const user= await getUserPassword(userId);
     
-    if(! verifyPassword(cleanOldPw, user.password)){
+    if(! await verifyPassword(cleanOldPw, user.password)){
       throw new HttpError(401, "Invalid password");
       
     }
@@ -238,10 +238,11 @@ export async function changePassword(oldPassword: string, newPassword: string, c
       throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.")
       
     }
+    const hashedPassword=await hashPassword(cleanNewPw);
 
     
     const q=`Update users SET password =$1 where id = $2`
-    await pool.query<user>(q,[newPassword, userId])
+    await pool.query<user>(q,[hashedPassword, userId])
     return true;
   }
   catch(err){
