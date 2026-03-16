@@ -70,7 +70,7 @@ export async function changeUserPassword(req: Request, res:Response, next:NextFu
 
     const {oldPassword, newPassword, confirmPassword} = req.body;
     const userId = req.user?.userId;
-    if(!oldPassword.trim() || ! newPassword.trim() || confirmPassword.trim()){
+    if(!oldPassword.trim() || !newPassword.trim() || !confirmPassword.trim()){
         throw new HttpError(400,"All fields required")
     }
     try{
