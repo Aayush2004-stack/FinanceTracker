@@ -193,3 +193,59 @@ export async function userLogin(email: string, password: string){
   }
 }
 
+export async function getUserPassword(userId: string){
+  try{
+
+    const q=`Select password from users where id =$1`
+    
+    const result = await pool.query<user>(q,[userId]);
+    if(result.rows.length===0){
+      throw new HttpError(404, "User not found");
+      
+    }
+    const user = result.rows[0];
+    return user;
+  }
+  catch(err){
+    throw err;
+  }
+}
+
+export async function changePassword(oldPassword: string, newPassword: string, confirmPassword:string, userId:string){
+
+  const cleanOldPw= oldPassword.trim();
+  const cleanNewPw = newPassword.trim();
+  const cleanConfirmPassword= confirmPassword.trim();
+
+  try{
+
+    const user= await getUserPassword(userId);
+    
+    if(! await verifyPassword(cleanOldPw, user.password)){
+      throw new HttpError(401, "Invalid password");
+      
+    }
+    
+    if(! (cleanNewPw===cleanConfirmPassword)){
+      throw new HttpError(400,"Password do not match")
+      
+    }
+    if(cleanNewPw===cleanOldPw){
+      throw new HttpError(422,"New password must be different from the old password.")
+    }
+    
+    if(! isValidPassword(cleanNewPw)){
+      throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.")
+      
+    }
+    const hashedPassword=await hashPassword(cleanNewPw);
+
+    
+    const q=`Update users SET password =$1 where id = $2`
+    await pool.query<user>(q,[hashedPassword, userId])
+    return true;
+  }
+  catch(err){
+    throw err;
+  }
+}
