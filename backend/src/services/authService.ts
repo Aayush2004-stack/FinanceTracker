@@ -124,13 +124,15 @@ export async function validateEmail(email: string, otp: string) {
 
     const user = await getUserDetailsFromEmail(cleanEmail);
 
+    if(user.is_verified){
+      throw new HttpError(409, "email is already verified")
+    }
+
     if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
       throw new HttpError(400,"OTP expired. Resend OTP")
 
     }
-    if(user.is_verified){
-      throw new HttpError(409, "email is already verified")
-    }
+    
     const hashedOtp = hashOTP(otp);
     
     if (!(hashedOtp === user.otp)) {
