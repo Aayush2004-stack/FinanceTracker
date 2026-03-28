@@ -56,8 +56,8 @@ export async function validateUserEmail(req: Request, res: Response, next: NextF
 
     try{
 
-        await validateEmail(email, otp);
-        return res.status(200).json({message:"OTP validated successfully"});
+        const userData=await validateEmail(email, otp);
+        return res.status(200).json({message:"OTP validated successfully", userData});
     }
     catch(err){
         next(err);
