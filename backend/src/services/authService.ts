@@ -124,13 +124,15 @@ export async function validateEmail(email: string, otp: string) {
 
     const user = await getUserDetailsFromEmail(cleanEmail);
 
+    if(user.is_verified){
+      throw new HttpError(409, "email is already verified")
+    }
+
     if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
       throw new HttpError(400,"OTP expired. Resend OTP")
 
     }
-    if(user.is_verified){
-      throw new HttpError(409, "email is already verified")
-    }
+    
     const hashedOtp = hashOTP(otp);
     
     if (!(hashedOtp === user.otp)) {
@@ -248,4 +250,33 @@ export async function changePassword(oldPassword: string, newPassword: string, c
   catch(err){
     throw err;
   }
+}
+
+
+
+
+export async function verifyForgotPasswordOTP(email:string, otp:string){
+  const cleanEmail = formatEmail(email);
+  if(!isValidEmail){
+    return new HttpError(400,"Not a valid email")
+
+  }
+  const user = await getUserDetailsFromEmail(cleanEmail);
+
+    if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
+      throw new HttpError(400,"OTP expired. Resend OTP")
+
+    }
+  const hashedOtp = hashOTP(otp)
+  if(! (hashedOtp===user.otp)){
+    throw new HttpError(403,"Not a valid otp")
+
+  }
+  const token = signToken(user.id);
+      return {
+      user_token: token,
+      id: user.id,
+      name: user.name,
+      email: user.email,}
+
 }
