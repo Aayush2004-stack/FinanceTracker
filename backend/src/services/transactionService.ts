@@ -20,7 +20,7 @@ export async function addTransaction(userId:string, categoryId:string, areaId:st
     }
 
     try{
-        const q = `INSERT INTO transactions (user_id, category_id, area_id, title, remarks, amount, type, txn_date) Values ($1, $2, $3, $4, $5, $6, $7, $8);`
+        const q = `INSERT INTO transaction (user_id, category_id, area_id, title, remarks, amount, type, txn_date) Values ($1, $2, $3, $4, $5, $6, $7, $8);`
 
         await pool.query<transaction>(q,[userId, categoryId, areaId, title, remarks, amount, type, txnDate]);
     }
