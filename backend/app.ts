@@ -6,6 +6,7 @@ import {errorHandler} from "./src/middlewares/errorMiddleware"
 import cors from "cors"
 import categoryRoutes from "./src/routes/categoryRoutes";
 import areaRoutes from "./src/routes/areaRoutes";
+import transactionRoutes from "./src/routes/transactionRoutes";
 
 dotenv.config();
 
@@ -23,6 +24,7 @@ app.use("/api/auth", register);
 
 app.use("/api/categories", categoryRoutes);
 app.use("/api/areas", areaRoutes);
+app.use("/api/transactions", transactionRoutes);
 
 app.use(errorHandler); //global err handler
 const PORT = process.env.PORT || 3001;
