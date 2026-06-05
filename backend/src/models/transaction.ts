@@ -4,6 +4,7 @@ export interface transaction{
     id:string;
     user_id:string;
     category_id:string;
+    area_id:string;
     title:string;
     remarks:string;
     amount: number;
