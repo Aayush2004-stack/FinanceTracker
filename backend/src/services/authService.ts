@@ -101,7 +101,7 @@ export async function getUserDetailsFromEmail(email: string) {
   try{
     const cleanEmail= formatEmail(email);
 
-    const q = `Select name, email, otp, otp_expires_at, is_verified from users where email = $1`;
+    const q = `Select id, name, email, otp, otp_expires_at, is_verified from users where email = $1`;
 
     const result = await pool.query<user>(q, [cleanEmail]);
 
@@ -257,26 +257,50 @@ export async function changePassword(oldPassword: string, newPassword: string, c
 
 export async function verifyForgotPasswordOTP(email:string, otp:string){
   const cleanEmail = formatEmail(email);
-  if(!isValidEmail){
-    return new HttpError(400,"Not a valid email")
-
+  if(!isValidEmail(cleanEmail)){
+    throw new HttpError(400,"Not a valid email");
   }
   const user = await getUserDetailsFromEmail(cleanEmail);
 
-    if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
-      throw new HttpError(400,"OTP expired. Resend OTP")
-
-    }
-  const hashedOtp = hashOTP(otp)
-  if(! (hashedOtp===user.otp)){
-    throw new HttpError(403,"Not a valid otp")
-
+  if(!user.otp || !user.otp_expires_at || new Date(Date.now()) > user.otp_expires_at){
+    throw new HttpError(400,"OTP expired. Resend OTP");
   }
-  const token = signToken(user.id);
-      return {
-      user_token: token,
-      id: user.id,
-      name: user.name,
-      email: user.email,}
+  const hashedOtp = hashOTP(otp);
+  if(!(hashedOtp === user.otp)){
+    throw new HttpError(403,"Not a valid otp");
+  }
 
+  const clearOtpQ = `UPDATE users SET otp = NULL, otp_expires_at = NULL WHERE email = $1`;
+  await pool.query<user>(clearOtpQ, [cleanEmail]);
+
+  const token = signToken(user.id);
+  return {
+    user_token: token,
+    id: user.id,
+    name: user.name,
+    email: user.email,
+  };
+}
+
+export async function resetPassword(newPassword: string, confirmPassword: string, userId: string) {
+  const cleanNewPw = newPassword.trim();
+  const cleanConfirmPassword = confirmPassword.trim();
+
+  if(!cleanNewPw || !cleanConfirmPassword){
+    throw new HttpError(400,"All fields required");
+  }
+  if(!(cleanNewPw === cleanConfirmPassword)){
+    throw new HttpError(400,"Password do not match");
+  }
+  if(!isValidPassword(cleanNewPw)){
+    throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.");
+  }
+
+  const hashedPassword = await hashPassword(cleanNewPw);
+  const q = `UPDATE users SET password = $1 WHERE id = $2`;
+  const result = await pool.query<user>(q, [hashedPassword, userId]);
+  if(result.rowCount === 0){
+    throw new HttpError(404, "User not found");
+  }
+  return true;
 }
