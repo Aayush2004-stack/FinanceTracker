@@ -13,17 +13,32 @@ const transporter = nodemailer.createTransport({
   },
 });
 
-export async function sendOtp(to: string, otp: string, expiresIn: number) {
+const subjects={
+    EMAIL_VALIDATION:"Verify your email for Finance Tracker",
+    FORGOT_PASSWORD:"OTP for resetting your password for Finance Tracker"
+}
+
+const heading={
+    EMAIL_VALIDATION:"Email verification",
+    FORGOT_PASSWORD:"Reset your password"
+}
+
+export async function sendOtp(to: string, otp: string, expiresIn: number, type: "EMAIL_VALIDATION" | "FORGOT_PASSWORD" = "EMAIL_VALIDATION") {
+
+  try {
   await transporter.sendMail({
     from: `"Finance Tracker" <${process.env.SMTP_USER}>`,
     to,
-    subject: "Verify the email for Finance Tracker",
+    subject: subjects[type],
     html: `
-        <h2>Email verification</h2>
+        <h2>${heading[type]}</h2>
         <p> Your OTP is:</p>
         <h1>${otp}</h1>
         <p>This OTP expires in <b>${expiresIn} minutes</b>.</p>
       <p>If you didn’t request this, ignore this email.</p>
         `,
-  });
+  });}
+  catch(err){
+    throw err;
+  }
 }

@@ -58,7 +58,7 @@ export async function registerUser(input: {
       otpExpiresAt,
     ]);
 
-    await sendOtp(email, otp, 10);
+    await sendOtp(email, otp, 10,"EMAIL_VALIDATION");
     const user = result.rows[0];
 
 
