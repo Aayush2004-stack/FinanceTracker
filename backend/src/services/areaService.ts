@@ -13,9 +13,9 @@ export const createArea = async (input:{
     
     }
     try {
-        const q = `INSERT INTO area (user_id, name, description) VALUES ($1, $2, $3);`;
-        await pool.query<area>(q, [userId, name.trim(), description]);
-        return {message: "Area created successfully!"};
+        const q = `INSERT INTO area (user_id, name, description) VALUES ($1, $2, $3) RETURNING id, name, description, created_at, updated_at;`;
+        const result = await pool.query<area>(q, [userId, name.trim(), description]);
+        return result.rows[0];
         
     }
     catch(err: any){
