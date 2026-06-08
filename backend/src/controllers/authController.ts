@@ -1,5 +1,5 @@
 import {Request, Response, NextFunction} from "express"
-import {registerUser, validateEmail, userLogin, changePassword, verifyForgotPasswordOTP}  from "../services/authService" 
+import {registerUser, validateEmail, userLogin, changePassword, verifyForgotPasswordOTP, resetPassword}  from "../services/authService" 
 import { HttpError } from "../utils/errors";
 
 
@@ -87,12 +87,27 @@ export async function changeUserPassword(req: Request, res:Response, next:NextFu
 
 export async function validateForgotPwOtp(req:Request, res:Response, next:NextFunction){
     const {email, otp}= req.body;
-    if(!email.trim() || !otp.trim()){
+    if(!email?.trim() || !otp?.trim()){
          throw new HttpError(400,"All fields required")
     }
     try{
         const userData=await verifyForgotPasswordOTP(email, otp.trim())
         return res.status(200).json({message:"Otp validated", userData})
+    }
+    catch(err){
+        next(err);
+    }
+}
+
+export async function resetUserPassword(req: Request, res: Response, next: NextFunction) {
+    const { newPassword, confirmPassword } = req.body;
+    const userId = req.user?.userId;
+    if(!newPassword?.trim() || !confirmPassword?.trim()){
+        throw new HttpError(400,"All fields required");
+    }
+    try{
+        await resetPassword(newPassword, confirmPassword, userId!);
+        return res.status(200).json({ message: "Password reset successfully" });
     }
     catch(err){
         next(err);
