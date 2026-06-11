@@ -27,3 +27,7 @@ export function formatEmail(email:string):string{
     const formatedEmail = email.trim().toLowerCase();
     return formatedEmail;
 }
+export function isValidName(name:string):boolean{
+    const nameRegex = /^[a-zA-Z\s]+$/;
+    return nameRegex.test(name);
+}

@@ -1,28 +1,48 @@
 import { pool } from "../configs/db";
 import {transaction} from "../models/transaction";
 import { HttpError} from "../utils/errors";
+import Decimal from "decimal.js";
+
+//validation for the amount
+export function validateAmount(amount: string): string {
+    if (typeof amount !== "string") {
+        throw new HttpError(400, "Amount must be a string");
+    }
+
+    // prevents: abc, 12a, empty, etc.
+    if (!/^\d+(\.\d{1,2})?$/.test(amount)) {
+        throw new HttpError(400, "Invalid amount format");
+    }
+
+    const value = new Decimal(amount);
+
+    // prevents: 1e+2, 1e-2, etc.
+    if (!value.isFinite()) {
+        throw new HttpError(400, "Invalid amount");
+    }
+    // prevents: 0, -1, -0.01, etc.
+    if (value.lte(0)) {
+        throw new HttpError(400, "Amount must be greater than 0");
+    }
+
+    // prevents: 1.234, 1.2.3, etc.
+    return value.toFixed(2); // normalize
+}
 
 //create a new transaction 
 
-export async function addTransaction(userId:string, categoryId:string, areaId:string, title:string, remarks:string, amount: Number, type:string, txnDate:string ){
-    if(!userId){
-        throw new HttpError(404,"User id is missing");
+export async function addTransaction(userId:string, categoryId:string, areaId:string, title:string, remark:string, amount: string, type:string, txnDate:string ){
+    
+    if(type !== "credit" && type !== "debit"){
+        throw new HttpError(400,"Invalid transaction type");
     }
-    if(!categoryId){
-        throw new HttpError(404,"Category id is missing");
-    }
-    if(!areaId){
-        throw new HttpError(404,"Area id is missing");
-    }
-
-    if(!title || !amount || !type || !txnDate){
-        throw new HttpError(400,"All fields should be filled");
-    }
+    const validatedAmount = validateAmount(amount);
+    
 
     try{
         const q = `INSERT INTO transaction (user_id, category_id, area_id, title, remarks, amount, type, txn_date) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id, category_id, area_id, title, remarks, amount, type, txn_date, created_at, updated_at;`
 
-        const result = await pool.query<transaction>(q,[userId, categoryId, areaId, title, remarks, amount, type, txnDate]);
+        const result = await pool.query<transaction>(q,[userId, categoryId, areaId, title, remark, validatedAmount, type, txnDate]);
         return result.rows[0];
     }
     catch(err){

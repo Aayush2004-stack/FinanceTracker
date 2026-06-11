@@ -4,7 +4,7 @@ import {pool} from "../configs/db"
 import { user } from "../models/user";
 import { HttpError} from "../utils/errors";
 
-export async function sendOtpForValidation(email:string){
+export async function sendOtpForValidation(email:string, type: "EMAIL_VALIDATION" | "FORGOT_PASSWORD" = "EMAIL_VALIDATION"){
   try{
 
     const otp =generateOTP();
@@ -16,7 +16,7 @@ export async function sendOtpForValidation(email:string){
     if (result.rowCount===0){
       throw new HttpError(404,"User not found");
     }
-    sendOtp(email,otp,10);
+    await sendOtp(email, otp, 10,type);
     
   }
   catch(err){

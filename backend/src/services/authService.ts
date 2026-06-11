@@ -4,12 +4,12 @@ import { hashPassword, verifyPassword } from "../utils/passwords";
 import jwt, { SignOptions } from "jsonwebtoken";
 import dotenv from "dotenv";
 import { HttpError, isPgUniqueVoilation } from "../utils/errors";
-import { isValidEmail, isValidPassword , formatEmail , formatUserName } from "../utils/validations";
+import { isValidEmail, isValidPassword , formatEmail , formatUserName, isValidName } from "../utils/validations";
 import { generateOTP, hashOTP, setOtpExpiryTime } from "../utils/otp";
 import { sendOtp } from "../utils/mailer";
 
 
-dotenv.config();
+
 
 export function signToken(userId: string): string {
   const options: SignOptions = {
@@ -33,6 +33,9 @@ export async function registerUser(input: {
 
   if (!isValidEmail(cleanEmail)) {
     throw new HttpError(400, "Not a valid email format");
+  }
+  if(!isValidName(cleanName)){
+    throw new HttpError(400, "Invalid name format");
   }
   if (!isValidPassword(cleanPassword)){
     throw new HttpError(400,"Password must be minimum of 8 character.\nShould contain upper case letter.\nShould have lower case letter.\nShould contain number.")
@@ -58,7 +61,7 @@ export async function registerUser(input: {
       otpExpiresAt,
     ]);
 
-    await sendOtp(email, otp, 10);
+    await sendOtp(email, otp, 10,"EMAIL_VALIDATION");
     const user = result.rows[0];
 
 
