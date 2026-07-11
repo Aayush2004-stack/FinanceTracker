@@ -16,7 +16,7 @@ const app = express();
 // Enable CORS for all routes
 app.use(
   cors({
-    origin: "http://localhost:5173", // replace with your frontend URL
+    origin: ["http://localhost:5173", "https://track-kharcha.bastolaaayush.com.np"],
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true, // if you need cookies
   }),
