@@ -8,6 +8,7 @@ import categoryRoutes from "./src/routes/categoryRoutes";
 import areaRoutes from "./src/routes/areaRoutes";
 import transactionRoutes from "./src/routes/transactionRoutes";
 import { apiLimiter, authLimiter } from "./src/middlewares/rateLimiter";
+import healthRoute from "./src/routes/healthRoute";
 
 dotenv.config();
 
@@ -30,6 +31,7 @@ app.use("/api/auth", authLimiter, register);
 app.use("/api/categories", categoryRoutes);
 app.use("/api/areas", areaRoutes);
 app.use("/api/transactions", transactionRoutes);
+app.use("/api/health", healthRoute);
 
 app.use(errorHandler); //global err handler
 const PORT = process.env.PORT || 3001;
