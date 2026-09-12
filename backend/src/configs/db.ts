@@ -1,8 +1,10 @@
-import {Pool} from "pg";
+import {Pool, types} from "pg";
 import dotenv from "dotenv"
 
 dotenv.config();
+// OID 1082 = DATE
 
+types.setTypeParser(1082, (value) => value);
 if(!process.env.DATABASE_URL){
     throw new Error("Data base url is not defined in .env")
 }
